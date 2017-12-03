@@ -28,7 +28,7 @@ function raise_exception(insblock::BasicBlock, ex::Value)
 end
 
 
-function irgen(func::ANY, tt::ANY)
+function irgen(@nospecialize(func), @nospecialize(tt))
     # collect all modules of IR
     function hook_module_setup(ref::Ptr{Void})
         ref = convert(LLVM.API.LLVMModuleRef, ref)
@@ -151,7 +151,7 @@ myfun(x) = sum((x, x, 1.0))
 export_bitcode("myfun.bc", myfun, Tuple{Float64})
 ```
 """
-function export_bitcode(filename, func::ANY, tt)
+function export_bitcode(filename, @nospecialize(func), @nospecialize(tt))
     mod = irgen(func, tt)
     bitcode = convert(Vector{UInt8}, mod)
     open(filename, "w") do io 
