@@ -76,7 +76,7 @@ function write_js(filename, @nospecialize(fun), @nospecialize(argtypes), args...
     # Default to libraries shipped with the package
     libdir = joinpath(Pkg.dir("ExportWebAssembly"), "docker/"),
     emcc_env = "",
-    emcc_args = ""
+    emcc_args = []
 )
     mod, names = irgen(fun, argtypes, args...;
                        flavor = flavor, optimize_lowering = optimize_lowering, optimize_bitcode = optimize_bitcode,
@@ -84,11 +84,11 @@ function write_js(filename, @nospecialize(fun), @nospecialize(argtypes), args...
     modfilename = string(filename, ".bc")
     CodeGen.write(modfilename, mod)
     jsnames = join(["'_$x'" for x in names], ", ")
-    Base.run(`emcc $modfilename $libdir/libjulia.bc $libdir/libuv.bc -o $filename -s EXPORTED_FUNCTIONS="[$jsnames]" -s TOTAL_MEMORY=$memsize`)
+    Base.run(`emcc $modfilename $libdir/libjulia.bc $libdir/libuv.bc -o $filename -s EXPORTED_FUNCTIONS="[$jsnames]" $emcc_args -s TOTAL_MEMORY=$memsize`)
 end
 
 write_wasm(filename, @nospecialize(fun), @nospecialize(argtypes), args...; oargs...) =
-    write_js(filename, fun, result_type, argtypes, args...; flavor = :wasm, emcc_args = "-s WASM=1", oargs...)
+    write_js(filename, fun, argtypes, args...; flavor = :wasm, emcc_args = ["-s", "WASM=1"], oargs...)
 
 
 end # module
